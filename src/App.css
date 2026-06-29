@@ -548,19 +548,22 @@
   border-radius: 99px;
 }
 
-.checklist-list { display: flex; flex-direction: column; gap: 2px; }
+.checklist-list { display: flex; flex-direction: column; gap: 4px; }
+
+.checklist-bill-block {
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  overflow: hidden;
+}
+.checklist-bill-block.done { background: #F0FDF4; }
 
 .checklist-row {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 11px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--bg);
   cursor: pointer;
-  transition: background 0.12s;
 }
-.checklist-row.done { background: #F0FDF4; }
 
 .checklist-checkbox {
   width: 18px;
@@ -573,9 +576,8 @@
 .checklist-name {
   font-size: 0.92rem;
   font-weight: 600;
-  flex: 1;
 }
-.checklist-row.done .checklist-name { color: var(--muted); text-decoration: line-through; }
+.checklist-bill-block.done .checklist-name { color: var(--muted); text-decoration: line-through; }
 
 .checklist-bill-info {
   flex: 1;
@@ -594,20 +596,64 @@
   text-overflow: ellipsis;
 }
 
-.recurring-btn {
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 99px;
-  color: var(--muted);
-  background: var(--border);
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
+.checklist-manual-note {
+  font-size: 0.73rem;
+  color: var(--primary);
+  font-weight: 500;
 }
-.recurring-btn.active {
-  background: rgba(99,102,241,0.12);
-  color: #6366F1;
+
+.enter-amount-btn {
+  font-size: 0.73rem;
+  color: var(--primary);
+  font-weight: 600;
+  text-align: left;
+  background: none;
+  padding: 0;
+}
+
+.checklist-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.recurring-btn {
+  font-size: 1rem;
+  padding: 4px;
+  border-radius: 50%;
+  color: var(--muted);
+  background: transparent;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.recurring-btn.active { color: #6366F1; }
+
+.edit-bill-btn {
+  font-size: 0.95rem;
+  padding: 4px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  line-height: 1;
+}
+
+/* Inline pay form */
+.pay-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.delete-bill-btn {
+  padding: 11px;
+  border-radius: var(--radius-sm);
+  background: #FEF2F2;
+  color: var(--danger);
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: 1px solid #FECACA;
 }
 
 .add-bill-form {

@@ -144,7 +144,7 @@ export default function App() {
         {tab === "budgets" && (
           <Budgets budget={budget} setBudget={handleSetBudget} statement={currentStatement} />
         )}
-        {tab === "checklist" && <Checklist statement={currentStatement} />}
+        {tab === "checklist" && <Checklist statement={currentStatement} onAddTransaction={handleAddTransaction} />}
         {tab === "settings" && <Settings />}
       </main>
 
