@@ -7,9 +7,51 @@ import Upload from "./components/Upload";
 import AddTransaction from "./components/AddTransaction";
 import "./App.css";
 
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MONTH_ORDER = Object.fromEntries(MONTH_NAMES.map((m, i) => [m, i + 1]));
+
+function monthLabel(dateStr) {
+  const [year, mon] = dateStr.split("-").map(Number);
+  return `${MONTH_NAMES[mon - 1]} ${year}`;
+}
+
+function monthId(label) {
+  return label.replace(/\s+/g, "-").toLowerCase();
+}
+
+function monthSortKey(label) {
+  const [mon, year] = label.split(" ");
+  return parseInt(year) * 100 + (MONTH_ORDER[mon] || 0);
+}
+
+// Re-bucket all transactions by their actual date month, newest first.
+// Runs on load (migrates old data) and after every upload.
+function splitByMonth(statements) {
+  const byId = {};
+  for (const stmt of statements) {
+    for (const txn of stmt.transactions) {
+      if (!txn.date) continue;
+      const label = monthLabel(txn.date);
+      const id = monthId(label);
+      if (!byId[id]) byId[id] = { id, month: label, uploadedAt: stmt.uploadedAt, transactions: [] };
+      byId[id].transactions.push(txn);
+    }
+  }
+  return Object.values(byId).sort((a, b) => monthSortKey(b.month) - monthSortKey(a.month));
+}
+
 function loadStatements() {
-  try { return JSON.parse(localStorage.getItem("pf_statements") || "[]"); }
-  catch { return []; }
+  try {
+    const raw = JSON.parse(localStorage.getItem("pf_statements") || "[]");
+    const migrated = splitByMonth(raw);
+    // Persist migration so old data is fixed immediately
+    if (JSON.stringify(raw) !== JSON.stringify(migrated)) {
+      localStorage.setItem("pf_statements", JSON.stringify(migrated));
+    }
+    return migrated;
+  } catch {
+    return [];
+  }
 }
 
 function loadBudget() {
@@ -34,34 +76,16 @@ export default function App() {
   const currentStatement = statements.find((s) => s.id === selectedId) || statements[0] || null;
 
   function handleUploadComplete({ month, transactions }) {
-    // Group transactions by their actual transaction date, not the statement month
-    const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const byMonth = {};
-    for (const txn of transactions) {
-      const [year, mon] = txn.date.split("-").map(Number);
-      const label = `${MONTHS[mon - 1]} ${year}`;
-      const id = label.replace(/\s+/g, "-").toLowerCase();
-      if (!byMonth[id]) byMonth[id] = { id, month: label, transactions: [] };
-      byMonth[id].transactions.push(txn);
-    }
-
-    // Pick the month to navigate to after upload (prefer statement month, else most recent)
-    const primaryId = month.replace(/\s+/g, "-").toLowerCase();
-    const navigateTo = byMonth[primaryId] ? primaryId : Object.keys(byMonth)[0];
-
+    const primaryId = monthId(month);
     setStatements((prev) => {
-      let next = [...prev];
-      for (const { id, month: label, transactions: txns } of Object.values(byMonth)) {
-        const existing = next.find((s) => s.id === id);
-        const merged = existing
-          ? { ...existing, transactions: [...existing.transactions, ...txns] }
-          : { id, month: label, uploadedAt: Date.now(), transactions: txns };
-        next = [merged, ...next.filter((s) => s.id !== id)];
-      }
+      // Merge new transactions into the pool, then re-split by actual date
+      const combined = [...prev, { id: primaryId, month, uploadedAt: Date.now(), transactions }];
+      const next = splitByMonth(combined);
       localStorage.setItem("pf_statements", JSON.stringify(next));
       return next;
     });
-    setSelectedId(navigateTo);
+    // Navigate to the statement's primary month
+    setSelectedId(primaryId);
     setShowUpload(false);
     setTab("dashboard");
   }
@@ -69,14 +93,17 @@ export default function App() {
   function handleAddTransaction(txn) {
     if (!currentStatement) return;
     setStatements((prev) => {
-      const next = prev.map((s) =>
-        s.id === currentStatement.id
-          ? { ...s, transactions: [...s.transactions, txn] }
-          : s
+      // Place the manual transaction in the correct month bucket
+      const combined = prev.map((s) =>
+        s.id === currentStatement.id ? { ...s, transactions: [...s.transactions, txn] } : s
       );
+      const next = splitByMonth(combined);
       localStorage.setItem("pf_statements", JSON.stringify(next));
       return next;
     });
+    // If the txn date is in a different month, follow it
+    const targetId = monthId(monthLabel(txn.date));
+    setSelectedId(targetId);
   }
 
   function handleSetBudget(val) {
@@ -89,7 +116,7 @@ export default function App() {
       <header className="app-header">
         <div className="header-left">
           <h1 className="app-title">💰 Finance</h1>
-          {statements.length > 1 ? (
+          {statements.length > 0 && (
             <select
               className="month-select"
               value={selectedId || ""}
@@ -99,9 +126,7 @@ export default function App() {
                 <option key={s.id} value={s.id}>{s.month}</option>
               ))}
             </select>
-          ) : currentStatement ? (
-            <span className="month-label">{currentStatement.month}</span>
-          ) : null}
+          )}
         </div>
         <button className="upload-header-btn" onClick={() => setShowUpload(true)}>
           + Upload
