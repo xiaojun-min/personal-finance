@@ -14,6 +14,13 @@ const DEFAULT_BILLS = [
   { id: "electricity", name: "Electricity", recurring: true, keywords: ["pg&e", "sdg&e", "edison", "electric", "utility"] },
 ];
 
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+function dateToMonthId(dateStr) {
+  const [year, mon] = dateStr.split("-").map(Number);
+  return `${MONTH_NAMES[mon - 1]}-${year}`.toLowerCase();
+}
+
 function load(key, def) {
   try { return JSON.parse(localStorage.getItem(key) ?? "null") ?? def; }
   catch { return def; }
@@ -128,16 +135,24 @@ export default function Checklist({ statement, onAddTransaction, cardUploads, on
       category: "Utilities & Bills",
     });
 
-    // Store the amount+date in the checklist so this month shows as done
-    const next = { ...billManual, [monthId]: { ...manualData, [bill.id]: { amount: amt, date: payDate } } };
+    // Store under the month that matches the entered date, not the current view
+    const targetMonthId = dateToMonthId(payDate);
+    const next = {
+      ...billManual,
+      [targetMonthId]: { ...(billManual[targetMonthId] || {}), [bill.id]: { amount: amt, date: payDate } },
+    };
     setBillManual(next);
     persist("pf_bill_manual", next);
     setPayingId(null);
   }
 
   function clearManual(billId) {
-    const { [billId]: _, ...rest } = manualData;
-    const next = { ...billManual, [monthId]: rest };
+    // Remove from whichever month it was stored in
+    const entry = manualData[billId];
+    const targetMonthId = entry ? dateToMonthId(entry.date) : monthId;
+    const targetData = billManual[targetMonthId] || {};
+    const { [billId]: _, ...rest } = targetData;
+    const next = { ...billManual, [targetMonthId]: rest };
     setBillManual(next);
     persist("pf_bill_manual", next);
   }
