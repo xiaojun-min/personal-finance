@@ -4,6 +4,7 @@ import TransactionList from "./components/TransactionList";
 import Budgets from "./components/Budgets";
 import Settings from "./components/Settings";
 import Upload from "./components/Upload";
+import AddTransaction from "./components/AddTransaction";
 import "./App.css";
 
 function loadStatements() {
@@ -21,6 +22,7 @@ export default function App() {
   const [budget, setBudget] = useState(loadBudget);
   const [selectedId, setSelectedId] = useState(() => loadStatements()[0]?.id || null);
   const [showUpload, setShowUpload] = useState(false);
+  const [showAddTxn, setShowAddTxn] = useState(false);
 
   useEffect(() => {
     const envKey = import.meta.env.ANTHROPIC_API_KEY;
@@ -43,6 +45,19 @@ export default function App() {
     setSelectedId(id);
     setShowUpload(false);
     setTab("dashboard");
+  }
+
+  function handleAddTransaction(txn) {
+    if (!currentStatement) return;
+    setStatements((prev) => {
+      const next = prev.map((s) =>
+        s.id === currentStatement.id
+          ? { ...s, transactions: [...s.transactions, txn] }
+          : s
+      );
+      localStorage.setItem("pf_statements", JSON.stringify(next));
+      return next;
+    });
   }
 
   function handleSetBudget(val) {
@@ -79,7 +94,7 @@ export default function App() {
           <Dashboard statement={currentStatement} budget={budget} />
         )}
         {tab === "transactions" && (
-          <TransactionList statement={currentStatement} />
+          <TransactionList statement={currentStatement} onAdd={currentStatement ? () => setShowAddTxn(true) : null} />
         )}
         {tab === "budgets" && (
           <Budgets budget={budget} setBudget={handleSetBudget} statement={currentStatement} />
@@ -107,6 +122,10 @@ export default function App() {
 
       {showUpload && (
         <Upload onComplete={handleUploadComplete} onClose={() => setShowUpload(false)} />
+      )}
+
+      {showAddTxn && (
+        <AddTransaction onAdd={handleAddTransaction} onClose={() => setShowAddTxn(false)} />
       )}
 
       {!currentStatement && !showUpload && (

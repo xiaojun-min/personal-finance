@@ -5,7 +5,7 @@ function fmt(n) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
-export default function TransactionList({ statement }) {
+export default function TransactionList({ statement, onAdd }) {
   const [filter, setFilter] = useState("All");
 
   if (!statement) {
@@ -37,6 +37,9 @@ export default function TransactionList({ statement }) {
           ))}
         </select>
         <span className="txn-count">{sorted.length} transactions</span>
+        {onAdd && (
+          <button className="add-txn-btn" onClick={onAdd}>+ Add</button>
+        )}
       </div>
 
       <div className="txn-list">
