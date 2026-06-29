@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Dashboard from "./components/Dashboard";
 import TransactionList from "./components/TransactionList";
 import Budgets from "./components/Budgets";
@@ -21,6 +21,13 @@ export default function App() {
   const [budget, setBudget] = useState(loadBudget);
   const [selectedId, setSelectedId] = useState(() => loadStatements()[0]?.id || null);
   const [showUpload, setShowUpload] = useState(false);
+
+  useEffect(() => {
+    const envKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+    if (envKey && !localStorage.getItem("anthropic_api_key")) {
+      localStorage.setItem("anthropic_api_key", envKey);
+    }
+  }, []);
 
   const currentStatement = statements.find((s) => s.id === selectedId) || statements[0] || null;
 
