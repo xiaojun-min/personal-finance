@@ -35,10 +35,12 @@ export default function App() {
 
   function handleUploadComplete({ month, transactions }) {
     const id = month.replace(/\s+/g, "-").toLowerCase();
-    const newStatement = { id, month, uploadedAt: Date.now(), transactions };
     setStatements((prev) => {
-      const filtered = prev.filter((s) => s.id !== id);
-      const next = [newStatement, ...filtered];
+      const existing = prev.find((s) => s.id === id);
+      const merged = existing
+        ? { ...existing, transactions: [...existing.transactions, ...transactions] }
+        : { id, month, uploadedAt: Date.now(), transactions };
+      const next = [merged, ...prev.filter((s) => s.id !== id)];
       localStorage.setItem("pf_statements", JSON.stringify(next));
       return next;
     });
