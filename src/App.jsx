@@ -34,17 +34,34 @@ export default function App() {
   const currentStatement = statements.find((s) => s.id === selectedId) || statements[0] || null;
 
   function handleUploadComplete({ month, transactions }) {
-    const id = month.replace(/\s+/g, "-").toLowerCase();
+    // Group transactions by their actual transaction date, not the statement month
+    const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const byMonth = {};
+    for (const txn of transactions) {
+      const [year, mon] = txn.date.split("-").map(Number);
+      const label = `${MONTHS[mon - 1]} ${year}`;
+      const id = label.replace(/\s+/g, "-").toLowerCase();
+      if (!byMonth[id]) byMonth[id] = { id, month: label, transactions: [] };
+      byMonth[id].transactions.push(txn);
+    }
+
+    // Pick the month to navigate to after upload (prefer statement month, else most recent)
+    const primaryId = month.replace(/\s+/g, "-").toLowerCase();
+    const navigateTo = byMonth[primaryId] ? primaryId : Object.keys(byMonth)[0];
+
     setStatements((prev) => {
-      const existing = prev.find((s) => s.id === id);
-      const merged = existing
-        ? { ...existing, transactions: [...existing.transactions, ...transactions] }
-        : { id, month, uploadedAt: Date.now(), transactions };
-      const next = [merged, ...prev.filter((s) => s.id !== id)];
+      let next = [...prev];
+      for (const { id, month: label, transactions: txns } of Object.values(byMonth)) {
+        const existing = next.find((s) => s.id === id);
+        const merged = existing
+          ? { ...existing, transactions: [...existing.transactions, ...txns] }
+          : { id, month: label, uploadedAt: Date.now(), transactions: txns };
+        next = [merged, ...next.filter((s) => s.id !== id)];
+      }
       localStorage.setItem("pf_statements", JSON.stringify(next));
       return next;
     });
-    setSelectedId(id);
+    setSelectedId(navigateTo);
     setShowUpload(false);
     setTab("dashboard");
   }
