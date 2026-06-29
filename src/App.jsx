@@ -64,8 +64,12 @@ export default function App() {
   const [statements, setStatements] = useState(loadStatements);
   const [budget, setBudget] = useState(loadBudget);
   const [selectedId, setSelectedId] = useState(() => loadStatements()[0]?.id || null);
-  const [showUpload, setShowUpload] = useState(false);
-  const [showAddTxn, setShowAddTxn] = useState(false);
+  const [showUpload, setShowUpload]     = useState(false);
+  const [showAddTxn, setShowAddTxn]     = useState(false);
+  const [cardUploads, setCardUploads]   = useState(() => {
+    try { return JSON.parse(localStorage.getItem("pf_card_uploads") ?? "null") ?? {}; }
+    catch { return {}; }
+  });
 
   useEffect(() => {
     const envKey = import.meta.env.ANTHROPIC_API_KEY;
@@ -76,16 +80,25 @@ export default function App() {
 
   const currentStatement = statements.find((s) => s.id === selectedId) || statements[0] || null;
 
-  function handleUploadComplete({ month, transactions }) {
+  function handleUploadComplete({ month, transactions, cardId }) {
     const primaryId = monthId(month);
     setStatements((prev) => {
-      // Merge new transactions into the pool, then re-split by actual date
       const combined = [...prev, { id: primaryId, month, uploadedAt: Date.now(), transactions }];
       const next = splitByMonth(combined);
       localStorage.setItem("pf_statements", JSON.stringify(next));
       return next;
     });
-    // Navigate to the statement's primary month
+    // Auto-check the card for the statement's month
+    if (cardId) {
+      setCardUploads((prev) => {
+        const next = { ...prev };
+        const s = new Set(next[primaryId] || []);
+        s.add(cardId);
+        next[primaryId] = [...s];
+        localStorage.setItem("pf_card_uploads", JSON.stringify(next));
+        return next;
+      });
+    }
     setSelectedId(primaryId);
     setShowUpload(false);
     setTab("dashboard");
@@ -144,7 +157,17 @@ export default function App() {
         {tab === "budgets" && (
           <Budgets budget={budget} setBudget={handleSetBudget} statement={currentStatement} />
         )}
-        {tab === "checklist" && <Checklist statement={currentStatement} onAddTransaction={handleAddTransaction} />}
+        {tab === "checklist" && (
+          <Checklist
+            statement={currentStatement}
+            onAddTransaction={handleAddTransaction}
+            cardUploads={cardUploads}
+            onCardUploadsChange={(next) => {
+              setCardUploads(next);
+              localStorage.setItem("pf_card_uploads", JSON.stringify(next));
+            }}
+          />
+        )}
         {tab === "settings" && <Settings />}
       </main>
 

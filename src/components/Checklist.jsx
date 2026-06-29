@@ -85,27 +85,25 @@ function EditBillModal({ bill, onSave, onDelete, onClose }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function Checklist({ statement, onAddTransaction }) {
+export default function Checklist({ statement, onAddTransaction, cardUploads, onCardUploadsChange }) {
   const monthId     = statement?.id || "";
   const transactions = statement?.transactions || [];
 
-  const [cards, setCards]             = useState(() => load("pf_cards", DEFAULT_CARDS));
-  const [bills, setBills]             = useState(() => load("pf_bills", DEFAULT_BILLS));
-  const [cardUploads, setCardUploads] = useState(() => load("pf_card_uploads", {}));
+  const [cards, setCards]           = useState(() => load("pf_cards", DEFAULT_CARDS));
+  const [bills, setBills]           = useState(() => load("pf_bills", DEFAULT_BILLS));
   // { monthId: { billId: { amount, date } } }
-  const [billManual, setBillManual]   = useState(() => load("pf_bill_manual", {}));
+  const [billManual, setBillManual] = useState(() => load("pf_bill_manual", {}));
 
-  const uploadedSet = new Set(cardUploads[monthId] || []);
+  const uploadedSet = new Set((cardUploads || {})[monthId] || []);
   const manualData  = billManual[monthId] || {};
 
   // ── Card helpers ────────────────────────────────────────────
   function toggleCard(id) {
-    const next = { ...cardUploads };
+    const next = { ...(cardUploads || {}) };
     const s = new Set(next[monthId] || []);
     s.has(id) ? s.delete(id) : s.add(id);
     next[monthId] = [...s];
-    setCardUploads(next);
-    persist("pf_card_uploads", next);
+    onCardUploadsChange(next);
   }
 
   // ── Inline pay form ─────────────────────────────────────────
