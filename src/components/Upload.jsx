@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
-import { extractTextFromPdf } from "../utils/pdfExtract";
+import { fileToBase64 } from "../utils/pdfExtract";
 import { parseStatement } from "../api/claude";
 
 export default function Upload({ onComplete, onClose }) {
-  const [step, setStep] = useState("idle"); // idle | extracting | analyzing | done | error
+  const [step, setStep] = useState("idle"); // idle | analyzing | done | error
   const [error, setError] = useState("");
   const fileRef = useRef(null);
 
@@ -19,13 +19,10 @@ export default function Upload({ onComplete, onClose }) {
     }
 
     setError("");
-    setStep("extracting");
+    setStep("analyzing");
     try {
-      const rawText = await extractTextFromPdf(file);
-      if (!rawText.trim()) throw new Error("No text found in PDF. Is it a scanned image? Try a text-based PDF.");
-
-      setStep("analyzing");
-      const result = await parseStatement(rawText, apiKey);
+      const pdfBase64 = await fileToBase64(file);
+      const result = await parseStatement(pdfBase64, apiKey);
 
       if (!result.transactions?.length) throw new Error("No transactions found in the statement.");
 
@@ -75,13 +72,6 @@ export default function Upload({ onComplete, onClose }) {
             )}
             <p className="upload-hint">Your data stays in your browser — nothing is stored on a server.</p>
           </>
-        )}
-
-        {step === "extracting" && (
-          <div className="upload-progress">
-            <div className="spinner" />
-            <p>Reading PDF...</p>
-          </div>
         )}
 
         {step === "analyzing" && (

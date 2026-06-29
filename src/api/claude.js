@@ -1,12 +1,13 @@
 import { CATEGORY_NAMES } from "../constants";
 
-export async function parseStatement(rawText, apiKey) {
+export async function parseStatement(pdfBase64, apiKey) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
+      "anthropic-beta": "pdfs-2024-09-25",
       "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
@@ -15,10 +16,18 @@ export async function parseStatement(rawText, apiKey) {
       messages: [
         {
           role: "user",
-          content: `You are a financial data parser. Extract all transactions from this bank statement text and return structured JSON.
-
-BANK STATEMENT TEXT:
-${rawText}
+          content: [
+            {
+              type: "document",
+              source: {
+                type: "base64",
+                media_type: "application/pdf",
+                data: pdfBase64,
+              },
+            },
+            {
+              type: "text",
+              text: `You are a financial data parser. Extract all transactions from this bank statement PDF and return structured JSON.
 
 Return ONLY valid JSON (no markdown fences, no explanation):
 {
@@ -41,6 +50,8 @@ Rules:
 - Skip obvious internal transfers (e.g. "Transfer to Savings", "ACH Transfer")
 - If month is unclear, infer from dates
 - date format: YYYY-MM-DD`,
+            },
+          ],
         },
       ],
     }),
