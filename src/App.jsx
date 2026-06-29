@@ -5,6 +5,7 @@ import Budgets from "./components/Budgets";
 import Settings from "./components/Settings";
 import Upload from "./components/Upload";
 import AddTransaction from "./components/AddTransaction";
+import Checklist from "./components/Checklist";
 import "./App.css";
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -143,6 +144,7 @@ export default function App() {
         {tab === "budgets" && (
           <Budgets budget={budget} setBudget={handleSetBudget} statement={currentStatement} />
         )}
+        {tab === "checklist" && <Checklist statement={currentStatement} />}
         {tab === "settings" && <Settings />}
       </main>
 
@@ -150,6 +152,7 @@ export default function App() {
         {[
           { id: "dashboard", icon: "📊", label: "Overview" },
           { id: "transactions", icon: "📋", label: "Transactions" },
+          { id: "checklist", icon: "✅", label: "Checklist" },
           { id: "budgets", icon: "🎯", label: "Budget" },
           { id: "settings", icon: "⚙️", label: "Settings" },
         ].map(({ id, icon, label }) => (

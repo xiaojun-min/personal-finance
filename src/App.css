@@ -520,6 +520,144 @@
 .budget-pct-label { font-size: 0.8rem; color: var(--muted); text-align: right; margin-top: 2px; }
 .budget-no-data { font-size: 0.88rem; color: var(--muted); text-align: center; margin: 0; }
 
+/* ── Checklist ── */
+.checklist-page { display: flex; flex-direction: column; gap: 20px; }
+
+.checklist-section {
+  background: white;
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checklist-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checklist-progress {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(37,99,235,0.08);
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+.checklist-list { display: flex; flex-direction: column; gap: 2px; }
+
+.checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.checklist-row.done { background: #F0FDF4; }
+
+.checklist-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.checklist-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  flex: 1;
+}
+.checklist-row.done .checklist-name { color: var(--muted); text-decoration: line-through; }
+
+.checklist-bill-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.checklist-auto-note {
+  font-size: 0.73rem;
+  color: var(--success);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recurring-btn {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 99px;
+  color: var(--muted);
+  background: var(--border);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.recurring-btn.active {
+  background: rgba(99,102,241,0.12);
+  color: #6366F1;
+}
+
+.add-bill-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.recurring-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  font-weight: 500;
+  cursor: pointer;
+}
+.recurring-label input { accent-color: var(--primary); width: 16px; height: 16px; }
+
+.add-bill-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: 1.5px solid var(--border);
+}
+
+.add-bill-btn {
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--primary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  border: 1.5px dashed var(--border);
+  width: 100%;
+  text-align: center;
+  transition: border-color 0.15s;
+}
+.add-bill-btn:hover { border-color: var(--primary); }
+
 /* ── Settings ── */
 .settings-page { display: flex; flex-direction: column; gap: 16px; }
 
