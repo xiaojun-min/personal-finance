@@ -11,7 +11,7 @@ export default function Upload({ onComplete, onClose }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const apiKey = localStorage.getItem("anthropic_api_key") || "";
+    const apiKey = localStorage.getItem("anthropic_api_key") || import.meta.env.ANTHROPIC_API_KEY || "";
     if (!apiKey) {
       setError("No API key set. Go to Settings first.");
       setStep("error");
