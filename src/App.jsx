@@ -23,7 +23,7 @@ export default function App() {
   const [showUpload, setShowUpload] = useState(false);
 
   useEffect(() => {
-    const envKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+    const envKey = import.meta.env.ANTHROPIC_API_KEY;
     if (envKey && !localStorage.getItem("anthropic_api_key")) {
       localStorage.setItem("anthropic_api_key", envKey);
     }
