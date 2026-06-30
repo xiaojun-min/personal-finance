@@ -105,11 +105,9 @@ export default function App() {
   }
 
   function handleAddTransaction(txn) {
-    if (!currentStatement) return;
     setStatements((prev) => {
-      const combined = prev.map((s) =>
-        s.id === currentStatement.id ? { ...s, transactions: [...s.transactions, txn] } : s
-      );
+      // Inject into a temporary slot; splitByMonth re-buckets it by txn.date automatically
+      const combined = [...prev, { id: "_manual", month: "_manual", uploadedAt: Date.now(), transactions: [txn] }];
       const next = splitByMonth(combined);
       localStorage.setItem("pf_statements", JSON.stringify(next));
       return next;

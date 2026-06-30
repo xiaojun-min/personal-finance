@@ -152,12 +152,15 @@ export default function Checklist({ statement, onAddTransaction, onDeleteTransac
     const amt = parseFloat(payAmount);
     if (!amt || amt <= 0) return;
 
-    // Create a real transaction so it shows in dashboard & transactions tab
+    const targetMonthId = dateToMonthId(payDate);
+
+    // If there's already a manual entry for this bill this month, delete the old transaction first
+    const existing = billManual[targetMonthId]?.[bill.id];
+    if (existing?.txnId) onDeleteTransaction?.(existing.txnId);
+
     const txn = { id: `manual-${Date.now()}`, date: payDate, description: bill.name, amount: amt, type: "debit", category: "Utilities & Bills" };
     onAddTransaction?.(txn);
 
-    // Store under the month that matches the entered date, not the current view
-    const targetMonthId = dateToMonthId(payDate);
     const next = {
       ...billManual,
       [targetMonthId]: { ...(billManual[targetMonthId] || {}), [bill.id]: { amount: amt, date: payDate, txnId: txn.id } },
