@@ -15,11 +15,11 @@ function loadCards() {
 }
 
 export default function Upload({ onComplete, onClose }) {
-  const [step, setStep]       = useState("idle"); // idle | analyzing | error
-  const [error, setError]     = useState("");
-  const [cardId, setCardId]   = useState("");
-  const cards                 = loadCards();
-  const fileRef               = useRef(null);
+  const [step, setStep]   = useState("idle"); // idle | analyzing | done | error
+  const [error, setError] = useState("");
+  const [detected, setDetected] = useState(null); // { cardName, cardId } after analysis
+  const cards             = loadCards();
+  const fileRef           = useRef(null);
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
@@ -33,10 +33,11 @@ export default function Upload({ onComplete, onClose }) {
     }
 
     setError("");
+    setDetected(null);
     setStep("analyzing");
     try {
       const pdfBase64 = await fileToBase64(file);
-      const result = await parseStatement(pdfBase64, apiKey);
+      const result = await parseStatement(pdfBase64, apiKey, cards);
 
       if (!result.transactions?.length) throw new Error("No transactions found in the statement.");
 
@@ -46,7 +47,9 @@ export default function Upload({ onComplete, onClose }) {
         amount: parseFloat(t.amount) || 0,
       }));
 
-      onComplete({ month: result.month, transactions, cardId: cardId || null });
+      const matchedCard = cards.find((c) => c.id === result.cardId) || null;
+      setDetected(matchedCard ? { cardName: matchedCard.name, cardId: matchedCard.id } : null);
+      onComplete({ month: result.month, transactions, cardId: result.cardId || null });
       setStep("done");
     } catch (err) {
       setError(err.message || "Something went wrong.");
@@ -64,14 +67,6 @@ export default function Upload({ onComplete, onClose }) {
 
         {(step === "idle" || step === "error") && (
           <>
-            <div className="add-txn-field">
-              <label className="add-txn-label">Which card?</label>
-              <select className="settings-input" value={cardId} onChange={(e) => setCardId(e.target.value)}>
-                <option value="">Select a card…</option>
-                {cards.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-
             <button className="upload-trigger-btn" onClick={() => fileRef.current?.click()}>
               <span className="upload-trigger-icon">📄</span>
               <span>Choose PDF file</span>
@@ -79,7 +74,7 @@ export default function Upload({ onComplete, onClose }) {
             <input ref={fileRef} type="file" accept="application/pdf,.pdf" onChange={handleFile} style={{ display: "none" }} />
 
             {step === "error" && <div className="upload-error">⚠️ {error}</div>}
-            <p className="upload-hint">Your data stays in your browser — nothing is stored on a server.</p>
+            <p className="upload-hint">Card and month are detected automatically from your statement.</p>
           </>
         )}
 
