@@ -353,6 +353,12 @@
 .txn-amount.debit { color: var(--text); }
 .txn-amount.credit { color: var(--success); }
 
+.txn-delete-btn { background: none; border: none; color: var(--muted); font-size: 0.8rem; padding: 4px 6px; cursor: pointer; flex-shrink: 0; opacity: 0.5; }
+.txn-delete-btn:hover { opacity: 1; color: var(--danger); }
+.txn-delete-confirm { display: flex; gap: 6px; flex-shrink: 0; }
+.txn-delete-yes { background: var(--danger); color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; }
+.txn-delete-no { background: var(--bg); color: var(--text); border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; }
+
 /* ── Add Transaction ── */
 .add-txn-btn {
   background: var(--primary);

@@ -43,9 +43,10 @@ function applySortAndFilter(transactions, filter, sort) {
   });
 }
 
-export default function TransactionList({ statement, onAdd }) {
+export default function TransactionList({ statement, onAdd, onDelete }) {
   const [filter, setFilter] = useState("All");
   const [sort, setSort] = useState("date-desc");
+  const [confirmId, setConfirmId] = useState(null);
   const cards = loadCards();
   const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.name]));
 
@@ -81,6 +82,7 @@ export default function TransactionList({ statement, onAdd }) {
       <div className="txn-list">
         {result.map((t) => {
           const cat = CATEGORIES[t.category] || CATEGORIES["Other"];
+          const confirming = confirmId === t.id;
           return (
             <div key={t.id} className="txn-row">
               <span className="txn-emoji">{cat.emoji}</span>
@@ -94,6 +96,16 @@ export default function TransactionList({ statement, onAdd }) {
               <span className={`txn-amount ${t.type === "credit" ? "credit" : "debit"}`}>
                 {t.type === "credit" ? "+" : "-"}{fmt(t.amount)}
               </span>
+              {onDelete && (
+                confirming ? (
+                  <div className="txn-delete-confirm">
+                    <button className="txn-delete-yes" onClick={() => { onDelete(t.id); setConfirmId(null); }}>Delete</button>
+                    <button className="txn-delete-no" onClick={() => setConfirmId(null)}>Cancel</button>
+                  </div>
+                ) : (
+                  <button className="txn-delete-btn" onClick={() => setConfirmId(t.id)}>✕</button>
+                )
+              )}
             </div>
           );
         })}

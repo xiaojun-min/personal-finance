@@ -160,7 +160,7 @@ export default function App() {
           <Dashboard statement={currentStatement} budget={budget} />
         )}
         {tab === "transactions" && (
-          <TransactionList statement={currentStatement} onAdd={currentStatement ? () => setShowAddTxn(true) : null} />
+          <TransactionList statement={currentStatement} onAdd={currentStatement ? () => setShowAddTxn(true) : null} onDelete={handleDeleteTransaction} />
         )}
         {tab === "budgets" && (
           <Budgets budget={budget} setBudget={handleSetBudget} statement={currentStatement} />
