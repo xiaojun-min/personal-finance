@@ -286,6 +286,14 @@
 .cat-spent { font-size: 1rem; font-weight: 800; }
 .cat-remaining { font-size: 0.75rem; color: var(--success); font-weight: 600; }
 .cat-remaining.over { color: var(--danger); }
+.cat-chevron { font-size: 0.65rem; color: var(--muted); flex-shrink: 0; margin-left: 4px; }
+
+.cat-txn-list { display: flex; flex-direction: column; border-top: 1px solid var(--bg); padding-top: 8px; gap: 0; }
+.cat-txn-row { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--bg); }
+.cat-txn-row:last-child { border-bottom: none; padding-bottom: 0; }
+.cat-txn-desc { font-size: 0.85rem; font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cat-txn-meta { font-size: 0.72rem; color: var(--muted); flex-shrink: 0; }
+.cat-txn-amount { font-size: 0.88rem; font-weight: 700; flex-shrink: 0; }
 
 .budget-bar-track {
   height: 6px;

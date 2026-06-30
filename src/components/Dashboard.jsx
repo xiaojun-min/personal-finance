@@ -1,24 +1,62 @@
+import { useState } from "react";
 import { CATEGORIES } from "../constants";
+
+const DEFAULT_CARDS = [
+  { id: "chase-sapphire",  name: "Chase Sapphire" },
+  { id: "chase-unlimited", name: "Chase Unlimited" },
+  { id: "bofa",            name: "Bank of America" },
+  { id: "discover",        name: "Discover" },
+];
+
+function loadCards() {
+  try { return JSON.parse(localStorage.getItem("pf_cards") ?? "null") ?? DEFAULT_CARDS; }
+  catch { return DEFAULT_CARDS; }
+}
 
 function fmt(n) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
-function CategoryRow({ name, spent, transactionCount }) {
+function CategoryRow({ name, spent, transactions, cardMap }) {
+  const [open, setOpen] = useState(false);
   const cat = CATEGORIES[name] || CATEGORIES["Other"];
+  const sorted = [...transactions].sort((a, b) => b.date.localeCompare(a.date));
+
   return (
-    <div className="category-row">
-      <span className="cat-emoji">{cat.emoji}</span>
-      <div className="cat-info">
-        <span className="cat-name">{name}</span>
-        <span className="cat-count">{transactionCount} transaction{transactionCount !== 1 ? "s" : ""}</span>
+    <div className={`category-row ${open ? "expanded" : ""}`} onClick={() => setOpen((v) => !v)} style={{ cursor: "pointer" }}>
+      <div className="category-row-top">
+        <span className="cat-emoji">{cat.emoji}</span>
+        <div className="cat-info">
+          <span className="cat-name">{name}</span>
+          <span className="cat-count">{transactions.length} transaction{transactions.length !== 1 ? "s" : ""}</span>
+        </div>
+        <div className="cat-amounts">
+          <span className="cat-spent">{fmt(spent)}</span>
+        </div>
+        <span className="cat-chevron">{open ? "▲" : "▼"}</span>
       </div>
-      <span className="cat-spent">{fmt(spent)}</span>
+
+      {open && (
+        <div className="cat-txn-list" onClick={(e) => e.stopPropagation()}>
+          {sorted.map((t) => (
+            <div key={t.id} className="cat-txn-row">
+              <div className="cat-txn-desc">{t.description}</div>
+              <div className="cat-txn-meta">
+                {t.date}
+                {t.cardId && cardMap[t.cardId] ? ` · ${cardMap[t.cardId]}` : ""}
+              </div>
+              <div className="cat-txn-amount">{fmt(t.amount)}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function Dashboard({ statement, budget }) {
+  const cardMap = Object.fromEntries(loadCards().map((c) => [c.id, c.name]));
+
   if (!statement) {
     return (
       <div className="empty-dashboard">
@@ -39,9 +77,9 @@ export default function Dashboard({ statement, budget }) {
   const byCategory = {};
   for (const t of debits) {
     const cat = t.category || "Other";
-    if (!byCategory[cat]) byCategory[cat] = { spent: 0, count: 0 };
+    if (!byCategory[cat]) byCategory[cat] = { spent: 0, txns: [] };
     byCategory[cat].spent += t.amount;
-    byCategory[cat].count += 1;
+    byCategory[cat].txns.push(t);
   }
   const sortedCategories = Object.entries(byCategory).sort((a, b) => b[1].spent - a[1].spent);
 
@@ -92,7 +130,8 @@ export default function Dashboard({ statement, budget }) {
             key={name}
             name={name}
             spent={data.spent}
-            transactionCount={data.count}
+            transactions={data.txns}
+            cardMap={cardMap}
           />
         ))}
       </div>
