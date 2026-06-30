@@ -123,12 +123,29 @@ export default function Checklist({ statement, onAddTransaction, cardUploads, on
     onCardUploadsChange(next);
   }
 
+  // Returns the most recent manual entry for a bill across all months (excluding current view)
+  function lastKnownEntry(billId) {
+    let best = null;
+    for (const [mid, data] of Object.entries(billManual)) {
+      if (mid === monthId) continue;
+      const entry = data[billId];
+      if (entry && (!best || entry.date > best.date)) best = entry;
+    }
+    return best;
+  }
+
   // ── Inline pay form ─────────────────────────────────────────
   const [payingId, setPayingId] = useState(null);
   const [payAmount, setPayAmount] = useState("");
   const [payDate, setPayDate]   = useState(today());
 
-  function openPay(id) { setPayingId(id); setPayAmount(""); setPayDate(defaultPayDate(monthId)); }
+  function openPay(id) {
+    const bill = bills.find((b) => b.id === id);
+    const last = bill?.recurring ? lastKnownEntry(id) : null;
+    setPayingId(id);
+    setPayAmount(last ? String(last.amount) : "");
+    setPayDate(defaultPayDate(monthId));
+  }
   function cancelPay() { setPayingId(null); }
 
   function savePay(bill) {
@@ -277,11 +294,14 @@ export default function Checklist({ statement, onAddTransaction, cardUploads, on
                         Paid · {fmt(manual.amount)} · {manual.date}
                       </span>
                     )}
-                    {!done && !isPaying && (
-                      <button className="enter-amount-btn" onClick={() => openPay(bill.id)}>
-                        Tap to enter amount
-                      </button>
-                    )}
+                    {!done && !isPaying && (() => {
+                      const last = bill.recurring ? lastKnownEntry(bill.id) : null;
+                      return (
+                        <button className="enter-amount-btn" onClick={() => openPay(bill.id)}>
+                          {last ? `Last paid ${fmt(last.amount)} · tap to confirm` : "Tap to enter amount"}
+                        </button>
+                      );
+                    })()}
                   </div>
 
                   <div className="checklist-row-actions">
