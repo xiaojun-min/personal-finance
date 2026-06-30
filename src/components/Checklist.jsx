@@ -102,7 +102,7 @@ function EditBillModal({ bill, onSave, onDelete, onClose }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function Checklist({ statement, onAddTransaction, cardUploads, onCardUploadsChange }) {
+export default function Checklist({ statement, onAddTransaction, onDeleteTransaction, cardUploads, onCardUploadsChange }) {
   const monthId     = statement?.id || "";
   const transactions = statement?.transactions || [];
 
@@ -153,20 +153,14 @@ export default function Checklist({ statement, onAddTransaction, cardUploads, on
     if (!amt || amt <= 0) return;
 
     // Create a real transaction so it shows in dashboard & transactions tab
-    onAddTransaction?.({
-      id: `manual-${Date.now()}`,
-      date: payDate,
-      description: bill.name,
-      amount: amt,
-      type: "debit",
-      category: "Utilities & Bills",
-    });
+    const txn = { id: `manual-${Date.now()}`, date: payDate, description: bill.name, amount: amt, type: "debit", category: "Utilities & Bills" };
+    onAddTransaction?.(txn);
 
     // Store under the month that matches the entered date, not the current view
     const targetMonthId = dateToMonthId(payDate);
     const next = {
       ...billManual,
-      [targetMonthId]: { ...(billManual[targetMonthId] || {}), [bill.id]: { amount: amt, date: payDate } },
+      [targetMonthId]: { ...(billManual[targetMonthId] || {}), [bill.id]: { amount: amt, date: payDate, txnId: txn.id } },
     };
     setBillManual(next);
     persist("pf_bill_manual", next);
@@ -174,14 +168,15 @@ export default function Checklist({ statement, onAddTransaction, cardUploads, on
   }
 
   function clearManual(billId) {
-    // Remove from whichever month it was stored in
     const entry = manualData[billId];
     const targetMonthId = entry ? dateToMonthId(entry.date) : monthId;
     const targetData = billManual[targetMonthId] || {};
-    const { [billId]: _, ...rest } = targetData;
+    const { [billId]: removed, ...rest } = targetData;
     const next = { ...billManual, [targetMonthId]: rest };
     setBillManual(next);
     persist("pf_bill_manual", next);
+    // Also delete the transaction that was created when the bill was saved
+    if (removed?.txnId) onDeleteTransaction?.(removed.txnId);
   }
 
   // ── Edit / delete bill ──────────────────────────────────────

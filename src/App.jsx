@@ -116,6 +116,18 @@ export default function App() {
     });
   }
 
+  function handleDeleteTransaction(txnId) {
+    setStatements((prev) => {
+      const combined = prev.map((s) => ({
+        ...s,
+        transactions: s.transactions.filter((t) => t.id !== txnId),
+      }));
+      const next = splitByMonth(combined);
+      localStorage.setItem("pf_statements", JSON.stringify(next));
+      return next;
+    });
+  }
+
   function handleSetBudget(val) {
     setBudget(val);
     localStorage.setItem("pf_budget", val.toString());
@@ -157,6 +169,7 @@ export default function App() {
           <Checklist
             statement={currentStatement}
             onAddTransaction={handleAddTransaction}
+            onDeleteTransaction={handleDeleteTransaction}
             cardUploads={cardUploads}
             onCardUploadsChange={(next) => {
               setCardUploads(next);
