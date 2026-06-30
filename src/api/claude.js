@@ -44,6 +44,11 @@ Return ONLY valid JSON (no markdown fences, no explanation):
   ]
 }
 
+Month identification:
+- Use the statement's closing date, statement date, or billing period end date printed on the PDF — NOT the individual transaction dates
+- Credit card statements have a "Statement Period" or "Closing Date" — use that month
+- Example: a statement closing June 15 → "month": "June 2026"
+
 Card identification:
 - The user's cards are: ${cards.map((c) => `${c.id} = "${c.name}"`).join(", ")}
 - Identify which card this statement belongs to by reading the issuer name, card name, or last 4 digits shown on the statement
@@ -54,7 +59,6 @@ Rules:
 - type: "debit" for spending/withdrawals, "credit" for deposits/income/refunds
 - Categories must be one of: ${CATEGORY_NAMES.join(", ")}
 - Skip obvious internal transfers (e.g. "Transfer to Savings", "ACH Transfer")
-- If month is unclear, infer from dates
 - date format: YYYY-MM-DD`,
             },
           ],

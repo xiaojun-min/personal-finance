@@ -45,6 +45,7 @@ export default function Upload({ onComplete, onClose }) {
         ...t,
         id: `${Date.now()}-${i}`,
         amount: parseFloat(t.amount) || 0,
+        cardId: result.cardId || null,
       }));
 
       const matchedCard = cards.find((c) => c.id === result.cardId) || null;

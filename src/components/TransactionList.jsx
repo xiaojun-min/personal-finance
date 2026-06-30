@@ -1,6 +1,18 @@
 import { useState } from "react";
 import { CATEGORIES } from "../constants";
 
+const DEFAULT_CARDS = [
+  { id: "chase-sapphire",  name: "Chase Sapphire" },
+  { id: "chase-unlimited", name: "Chase Unlimited" },
+  { id: "bofa",            name: "Bank of America" },
+  { id: "discover",        name: "Discover" },
+];
+
+function loadCards() {
+  try { return JSON.parse(localStorage.getItem("pf_cards") ?? "null") ?? DEFAULT_CARDS; }
+  catch { return DEFAULT_CARDS; }
+}
+
 function fmt(n) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
@@ -34,6 +46,8 @@ function applySortAndFilter(transactions, filter, sort) {
 export default function TransactionList({ statement, onAdd }) {
   const [filter, setFilter] = useState("All");
   const [sort, setSort] = useState("date-desc");
+  const cards = loadCards();
+  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.name]));
 
   if (!statement) {
     return (
@@ -72,7 +86,10 @@ export default function TransactionList({ statement, onAdd }) {
               <span className="txn-emoji">{cat.emoji}</span>
               <div className="txn-details">
                 <span className="txn-desc">{t.description}</span>
-                <span className="txn-meta">{t.date} · {t.category || "Other"}</span>
+                <span className="txn-meta">
+                  {t.date} · {t.category || "Other"}
+                  {t.cardId && cardMap[t.cardId] ? ` · ${cardMap[t.cardId]}` : ""}
+                </span>
               </div>
               <span className={`txn-amount ${t.type === "credit" ? "credit" : "debit"}`}>
                 {t.type === "credit" ? "+" : "-"}{fmt(t.amount)}
