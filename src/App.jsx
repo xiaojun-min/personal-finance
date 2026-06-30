@@ -107,7 +107,6 @@ export default function App() {
   function handleAddTransaction(txn) {
     if (!currentStatement) return;
     setStatements((prev) => {
-      // Place the manual transaction in the correct month bucket
       const combined = prev.map((s) =>
         s.id === currentStatement.id ? { ...s, transactions: [...s.transactions, txn] } : s
       );
@@ -115,9 +114,6 @@ export default function App() {
       localStorage.setItem("pf_statements", JSON.stringify(next));
       return next;
     });
-    // If the txn date is in a different month, follow it
-    const targetId = monthId(monthLabel(txn.date));
-    setSelectedId(targetId);
   }
 
   function handleSetBudget(val) {

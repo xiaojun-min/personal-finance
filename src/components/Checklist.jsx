@@ -21,6 +21,16 @@ function dateToMonthId(dateStr) {
   return `${MONTH_NAMES[mon - 1]}-${year}`.toLowerCase();
 }
 
+// Default pay date: today if viewing current month, else 1st of the viewed month
+function defaultPayDate(viewedMonthId) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if (!viewedMonthId || dateToMonthId(todayStr) === viewedMonthId) return todayStr;
+  const [monthName, year] = viewedMonthId.split("-");
+  const monthIdx = MONTH_NAMES.findIndex((m) => m.toLowerCase() === monthName);
+  if (monthIdx === -1) return todayStr;
+  return `${year}-${String(monthIdx + 1).padStart(2, "0")}-01`;
+}
+
 function load(key, def) {
   try { return JSON.parse(localStorage.getItem(key) ?? "null") ?? def; }
   catch { return def; }
@@ -118,7 +128,7 @@ export default function Checklist({ statement, onAddTransaction, cardUploads, on
   const [payAmount, setPayAmount] = useState("");
   const [payDate, setPayDate]   = useState(today());
 
-  function openPay(id) { setPayingId(id); setPayAmount(""); setPayDate(today()); }
+  function openPay(id) { setPayingId(id); setPayAmount(""); setPayDate(defaultPayDate(monthId)); }
   function cancelPay() { setPayingId(null); }
 
   function savePay(bill) {
